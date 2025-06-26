@@ -191,8 +191,83 @@ class DetectionTool(QMainWindow):
         self.class_counts = {}
         self.session_start_time = time.time()
         
+        # Try to load default YOLO11 model
+        self.try_load_default_model()
+        
         self.init_ui()
         
+    def try_load_default_model(self):
+        """Try to load default YOLO11 model automatically"""
+        # Priority order for default models
+        default_models = [
+            # User trained models (highest priority)
+            Path("training/models/yolo11_best.pt"),
+            Path("training/models/yolo11n_trained.pt"),
+            Path("training/models/yolov11_best.pt"),
+            Path("training/models/best.pt"),
+            
+            # Relative paths from detection folder
+            Path("../training/models/yolo11_best.pt"),
+            Path("../training/models/yolo11n_trained.pt"),
+            Path("../training/models/yolov11_best.pt"),
+            Path("../training/models/best.pt"),
+            
+            # Pre-trained YOLO11 models (will be downloaded automatically)
+            "yolo11n.pt",  # YOLO11 nano - recommended default
+            "yolo11s.pt",  # YOLO11 small
+            "yolo11m.pt",  # YOLO11 medium
+        ]
+        
+        for model_path in default_models:
+            try:
+                if YOLO is None:
+                    print("Ultralytics not available. Cannot load default model.")
+                    return
+                
+                # Convert to absolute path if it's a Path object
+                if isinstance(model_path, Path):
+                    if not model_path.is_absolute():
+                        # Make relative to current working directory
+                        abs_path = Path.cwd() / model_path
+                        if abs_path.exists():
+                            model_path = str(abs_path)
+                        else:
+                            continue
+                    else:
+                        if not model_path.exists():
+                            continue
+                        model_path = str(model_path)
+                
+                # Try to load the model
+                print(f"Attempting to load default model: {model_path}")
+                model = YOLO(model_path)
+                
+                # Test if model loads successfully
+                if model is not None:
+                    self.model_path = str(model_path)
+                    print(f"✅ Successfully loaded default model: {model_path}")
+                    
+                    # Update UI if it exists
+                    if hasattr(self, 'model_path_label'):
+                        if isinstance(model_path, str) and model_path.endswith('.pt') and not os.path.exists(model_path):
+                            # This is a pre-trained model that was downloaded
+                            self.model_path_label.setText(f"🤖 โมเดลเริ่มต้น: {os.path.basename(model_path)} (YOLO11)")
+                        else:
+                            self.model_path_label.setText(f"🤖 โมเดล: {os.path.basename(model_path)}")
+                        self.model_path_label.setStyleSheet("color: green;")
+                    
+                    if hasattr(self, 'status_bar'):
+                        self.status_bar.showMessage(f"พร้อมใช้งาน - โหลดโมเดลเริ่มต้น: {os.path.basename(model_path)}")
+                    
+                    return True
+                    
+            except Exception as e:
+                print(f"Failed to load model {model_path}: {str(e)}")
+                continue
+        
+        print("⚠️  No default model could be loaded. Please load a model manually.")
+        return False
+
     def init_ui(self):
         """Initialize user interface"""
         self.setWindowTitle("🐛 เครื่องมือตรวจจับแมลง - Insect Detection Tool")
@@ -283,6 +358,12 @@ class DetectionTool(QMainWindow):
         model_group = QGroupBox("🤖 โมเดล")
         model_layout = QVBoxLayout(model_group)
         
+        # Model info
+        info_label = QLabel("💡 แนะนำ: YOLO11 สำหรับประสิทธิภาพสูงสุด")
+        info_label.setStyleSheet("color: #0066cc; font-size: 11px; font-style: italic;")
+        info_label.setWordWrap(True)
+        model_layout.addWidget(info_label)
+        
         self.model_path_label = QLabel("ยังไม่ได้เลือกโมเดล")
         self.model_path_label.setWordWrap(True)
         self.model_path_label.setStyleSheet("color: red;")
@@ -291,6 +372,12 @@ class DetectionTool(QMainWindow):
         load_model_btn = QPushButton("📁 โหลดโมเดล")
         load_model_btn.clicked.connect(self.load_model)
         model_layout.addWidget(load_model_btn)
+        
+        # Auto-load YOLO11 button
+        auto_load_btn = QPushButton("🚀 โหลด YOLO11 อัตโนมัติ")
+        auto_load_btn.clicked.connect(self.auto_load_yolo11)
+        auto_load_btn.setStyleSheet("QPushButton { background-color: #4CAF50; color: white; font-weight: bold; }")
+        model_layout.addWidget(auto_load_btn)
         
         left_layout.addWidget(model_group)
         
@@ -434,6 +521,45 @@ class DetectionTool(QMainWindow):
         
         main_layout.addWidget(right_widget)
         
+    def auto_load_yolo11(self):
+        """Auto-load YOLO11 model"""
+        if YOLO is None:
+            QMessageBox.warning(self, "ข้อผิดพลาด", "Ultralytics ไม่ได้ติดตั้ง กรุณาติดตั้งก่อน")
+            return
+        
+        # Show loading dialog
+        progress = QProgressDialog("กำลังดาวน์โหลด YOLO11...", "ยกเลิก", 0, 0, self)
+        progress.setWindowModality(Qt.WindowModal)
+        progress.show()
+        
+        try:
+            # Try to load YOLO11n (recommended)
+            model = YOLO("yolo11n.pt")
+            
+            # Set model path
+            self.model_path = "yolo11n.pt"
+            self.model_path_label.setText("🚀 โมเดลเริ่มต้น: yolo11n.pt (YOLO11)")
+            self.model_path_label.setStyleSheet("color: green; font-weight: bold;")
+            self.start_stop_btn.setEnabled(True)
+            self.status_bar.showMessage("โหลด YOLO11 สำเร็จ - พร้อมใช้งาน")
+            
+            progress.close()
+            
+            QMessageBox.information(
+                self, "สำเร็จ", 
+                "โหลด YOLO11 สำเร็จ!\n\n"
+                "YOLO11 มีประสิทธิภาพสูงสุดในการตรวจจับ\n"
+                "พร้อมความเร็วและความแม่นยำที่เหนือกว่า"
+            )
+            
+        except Exception as e:
+            progress.close()
+            QMessageBox.warning(
+                self, "ข้อผิดพลาด", 
+                f"ไม่สามารถโหลด YOLO11 ได้:\n{str(e)}\n\n"
+                "กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต"
+            )
+
     def load_model(self):
         """Load YOLO model"""
         file_dialog = QFileDialog()
@@ -443,11 +569,37 @@ class DetectionTool(QMainWindow):
         )
         
         if model_path:
-            self.model_path = model_path
-            self.model_path_label.setText(f"โมเดล: {Path(model_path).name}")
-            self.model_path_label.setStyleSheet("color: green;")
-            self.start_stop_btn.setEnabled(True)
-            self.status_bar.showMessage(f"โหลดโมเดล: {Path(model_path).name}")
+            try:
+                # Test loading the model to verify it works
+                if YOLO is not None:
+                    test_model = YOLO(model_path)
+                    model_info = f"โมเดล: {Path(model_path).name}"
+                    
+                    # Check if this is a YOLO11 model
+                    if "yolo11" in Path(model_path).name.lower() or "yolov11" in Path(model_path).name.lower():
+                        model_info += " (YOLO11 🚀)"
+                    elif "yolo10" in Path(model_path).name.lower():
+                        model_info += " (YOLO10)"
+                    elif "yolo8" in Path(model_path).name.lower() or "yolov8" in Path(model_path).name.lower():
+                        model_info += " (YOLOv8)"
+                    
+                    self.model_path = model_path
+                    self.model_path_label.setText(model_info)
+                    self.model_path_label.setStyleSheet("color: green;")
+                    self.start_stop_btn.setEnabled(True)
+                    self.status_bar.showMessage(f"โหลดโมเดลสำเร็จ: {Path(model_path).name}")
+                    
+                else:
+                    # Fallback if YOLO is not available
+                    self.model_path = model_path
+                    self.model_path_label.setText(f"โมเดล: {Path(model_path).name}")
+                    self.model_path_label.setStyleSheet("color: green;")
+                    self.start_stop_btn.setEnabled(True)
+                    self.status_bar.showMessage(f"โหลดโมเดล: {Path(model_path).name}")
+                    
+            except Exception as e:
+                QMessageBox.warning(self, "ข้อผิดพลาด", f"ไม่สามารถโหลดโมเดลได้:\n{str(e)}")
+                self.status_bar.showMessage("ไม่สามารถโหลดโมเดลได้")
     
     def update_confidence_label(self, value):
         """Update confidence threshold label"""

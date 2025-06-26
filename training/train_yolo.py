@@ -209,7 +209,7 @@ class InsectYOLOTrainer:
         
         return len(invalid_files) == 0
     
-    def train_model(self, model_size='n', epochs=100, imgsz=640, batch_size=16):
+    def train_model(self, model_size='n', epochs=100, imgsz=640, batch_size=16, model_version='yolo11'):
         """
         Train YOLO model
         
@@ -218,6 +218,7 @@ class InsectYOLOTrainer:
             epochs (int): Number of training epochs
             imgsz (int): Image size for training
             batch_size (int): Batch size for training
+            model_version (str): YOLO version ('yolo11', 'yolov10', 'yolov8')
         """
         print("Starting YOLO training...")
         
@@ -233,12 +234,18 @@ class InsectYOLOTrainer:
         data_yaml_path = self.create_data_yaml(dataset_dir)
         
         # Initialize YOLO model
-        model_name = f"yolov8{model_size}.pt"
+        if model_version == 'yolo11':
+            model_name = f"yolo11{model_size}.pt"
+        elif model_version == 'yolov10':
+            model_name = f"yolov10{model_size}.pt"
+        else:  # default to yolov8
+            model_name = f"yolov8{model_size}.pt"
+            
         model = YOLO(model_name)
         
-        print(f"Training with {model_name}")
-        print(f"Dataset: {data_yaml_path}")
-        print(f"Epochs: {epochs}, Image size: {imgsz}, Batch size: {batch_size}")
+        print(f"🚀 Training with {model_name} (YOLO version: {model_version})")
+        print(f"📊 Dataset: {data_yaml_path}")
+        print(f"⚙️  Settings: {epochs} epochs, {imgsz}x{imgsz} images, batch size {batch_size}")
         
         # Start training
         results = model.train(
@@ -294,6 +301,8 @@ def main():
     parser.add_argument('--output_dir', default='./models', help='Path to save models')
     parser.add_argument('--model_size', choices=['n', 's', 'm', 'l', 'x'], default='n', 
                        help='Model size (n=nano, s=small, m=medium, l=large, x=extra-large)')
+    parser.add_argument('--model_version', choices=['yolo11', 'yolov10', 'yolov8'], default='yolo11',
+                       help='YOLO model version (yolo11=default, yolov10, yolov8)')
     parser.add_argument('--epochs', type=int, default=100, help='Number of training epochs')
     parser.add_argument('--imgsz', type=int, default=640, help='Image size for training')
     parser.add_argument('--batch_size', type=int, default=16, help='Batch size for training')
@@ -310,12 +319,13 @@ def main():
             if results:
                 print("Evaluation completed successfully")
         else:
-            print("Starting training...")
+            print("🚀 Starting YOLO11 training...")
             results = trainer.train_model(
                 model_size=args.model_size,
                 epochs=args.epochs,
                 imgsz=args.imgsz,
-                batch_size=args.batch_size
+                batch_size=args.batch_size,
+                model_version=args.model_version
             )
             
             if results:

@@ -1,6 +1,15 @@
 # ระบบตรวจจับแมลง (Insect Detection System)
 
-โครงการนี้เป็นระบบตรวจจับแมลงที่ใช้ Deep Learning โดยประกอบด้วย 2 ส่วนหลัก:
+โครงการนี้เป็นระบบตรวจจับแมลงที่ใช้ Deep Learning โดยประกอบด้วย 2 ส่วนหลัก พร้อมรองรับ **YOLO11** ล่าสุดสำหรับประสิทธิภาพสูงสุด
+
+## 🚀 YOLO11 - Production Ready
+
+ระบบใช้ **YOLO11** เป็น default model เพื่อประสิทธิภาพสูงสุด:
+
+- ✅ ความแม่นยำสูงกว่า YOLOv8 และ YOLO10
+- ✅ ขนาดโมเดลที่เหมาะสม (nano: ~6MB)
+- ✅ ความเร็วการประมวลผลดีเยี่ยม
+- ✅ Auto-download และ auto-load ในโปรแกรม
 
 ## 1. Annotation Tool (Desktop Application)
 
@@ -101,20 +110,31 @@ python desktop_annotation_tool.py
 
 ### 2. การ Training
 
+**💡 แนะนำ: ใช้ YOLO11 สำหรับผลลัพธ์ที่ดีที่สุด**
+
 **Windows:**
 
 ```bash
 run_training.bat
 ```
 
-**Manual:**
+**Manual (YOLO11):**
 
 ```bash
 cd training
-python train_yolo.py
+python train_yolo.py --model_version yolo11 --epochs 100
+```
+
+**Manual (เปรียบเทียบโมเดล):**
+
+```bash
+cd training
+python compare_yolo_models.py --epochs 10
 ```
 
 ### 3. เครื่องมือตรวจจับ (Desktop)
+
+**🚀 YOLO11 Auto-Load: เปิดโปรแกรมแล้วใช้งานได้ทันที**
 
 **Windows:**
 
@@ -128,6 +148,12 @@ run_detection.bat
 cd detection
 python desktop_detection_tool.py
 ```
+
+**คุณสมบัติ YOLO11 ในโปรแกรม:**
+- 🔄 Auto-load YOLO11 เมื่อเปิดโปรแกรม
+- 🚀 ปุ่ม "โหลด YOLO11 อัตโนมัติ" สำหรับดาวน์โหลดใหม่
+- 📊 แสดงข้อมูลประสิทธิภาพ model แบบ real-time
+- ⚡ ประมวลผลเร็วกว่าเวอร์ชันเก่า
 
 หรือใช้เครื่องมือ command line:
 

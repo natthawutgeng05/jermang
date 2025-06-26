@@ -1,0 +1,47 @@
+{
+  "yolov8n": {
+    "parameters": 3157200,
+    "model_size_mb": 6.246372222900391,
+    "input_size": 640,
+    "avg_inference_time_ms": 164.55655097961426,
+    "fps": 6.076938256465298,
+    "min_time_ms": 131.08563423156738,
+    "max_time_ms": 325.268030166626,
+    "training_time_minutes": 0.3125224153200785,
+    "final_map50": 0.0,
+    "final_map50_95": 0.0,
+    "final_precision": 0.0,
+    "final_recall": 0.0,
+    "epochs_completed": 3
+  },
+  "yolov10n": {
+    "parameters": 2775520,
+    "model_size_mb": 5.588896751403809,
+    "input_size": 640,
+    "avg_inference_time_ms": 166.5318727493286,
+    "fps": 6.004856508791237,
+    "min_time_ms": 135.02931594848633,
+    "max_time_ms": 199.82552528381348,
+    "training_time_minutes": 0.3274639010429382,
+    "final_map50": 0.0,
+    "final_map50_95": 0.0,
+    "final_precision": 0.0,
+    "final_recall": 0.0,
+    "epochs_completed": 3
+  },
+  "yolo11n": {
+    "parameters": 2624080,
+    "model_size_mb": 5.353702545166016,
+    "input_size": 640,
+    "avg_inference_time_ms": 169.88420486450195,
+    "fps": 5.886362424320676,
+    "min_time_ms": 135.4830265045166,
+    "max_time_ms": 215.0137424468994,
+    "training_time_minutes": 0.2533899426460266,
+    "final_map50": 0.0065539331693630215,
+    "final_map50_95": 0.0014604385272386348,
+    "final_precision": 0.008641460476322861,
+    "final_recall": 0.2619047619047619,
+    "epochs_completed": 3
+  }
+}
