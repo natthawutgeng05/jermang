@@ -1,40 +1,42 @@
 @echo off
-title Insect Detection System
+title Insect Detection System - YOLO11
 color 0A
 
 :MAIN_MENU
 cls
 echo.
 echo     ===============================================
-echo     🐛 ระบบตรวจจับแมลง - Insect Detection System 🐛
+echo       Insect Detection System (YOLO11)
 echo     ===============================================
 echo.
-echo     เลือกเครื่องมือที่ต้องการใช้งาน:
+echo     Select the tool you want to use:
 echo.
-echo     1. 🏷️  เครื่องมือ Annotation (สำหรับติดป้ายกำกับ)
-echo     2. 🤖  การ Train โมเดล
-echo     3. 🔍  เครื่องมือตรวจจับแมลง
-echo     4. ⚙️  ติดตั้งและตั้งค่าระบบ
-echo     5. 📖  คู่มือการใช้งาน
-echo     6. ❌  ออกจากโปรแกรม
+echo     1. Annotation Tool (for labeling images)
+echo     2. Model Training (YOLO11 Default)
+echo     3. Detection Tool (YOLO11 Auto-Load)
+echo     4. Model Comparison (YOLOv8 vs v10 vs v11)
+echo     5. Install/Setup System
+echo     6. User Manual
+echo     7. Exit Program
 echo.
 echo     ===============================================
 echo.
 
-set /p choice="กรุณาเลือก (1-6): "
+set /p choice="Please select (1-7): "
 
 if "%choice%"=="1" goto ANNOTATION
 if "%choice%"=="2" goto TRAINING  
 if "%choice%"=="3" goto DETECTION
-if "%choice%"=="4" goto SETUP
-if "%choice%"=="5" goto HELP
-if "%choice%"=="6" goto EXIT
+if "%choice%"=="4" goto COMPARISON
+if "%choice%"=="5" goto SETUP
+if "%choice%"=="6" goto HELP
+if "%choice%"=="7" goto EXIT
 goto INVALID
 
 :ANNOTATION
 cls
 echo.
-echo 🏷️ กำลังเปิดเครื่องมือ Annotation...
+echo Starting Annotation Tool...
 echo.
 call run_annotation_tool.bat
 goto MAIN_MENU
@@ -42,63 +44,71 @@ goto MAIN_MENU
 :TRAINING
 cls
 echo.
-echo 🤖 กำลังเริ่มการ Train โมเดล...
+echo Starting YOLO11 Model Training...
 echo.
-call run_training.bat
+call run_yolo11_training.bat
 goto MAIN_MENU
 
 :DETECTION  
 cls
 echo.
-echo 🔍 กำลังเปิดเครื่องมือตรวจจับแมลง...
+echo Starting YOLO11 Detection Tool...
 echo.
-call run_detection.bat
+call run_yolo11_detection.bat
+goto MAIN_MENU
+
+:COMPARISON
+cls
+echo.
+echo Starting Model Comparison...
+echo.
+call run_model_comparison.bat
 goto MAIN_MENU
 
 :SETUP
 cls
 echo.
-echo ⚙️ กำลังติดตั้งและตั้งค่าระบบ...
+echo Installing and Setting up System...
 echo.
 call install.bat
 echo.
-echo การติดตั้งเสร็จสิ้น!
+echo Installation completed!
 pause
 goto MAIN_MENU
 
 :HELP
 cls
 echo.
-echo 📖 คู่มือการใช้งานระบบตรวจจับแมลง
+echo User Manual - Insect Detection System
 echo ========================================
 echo.
-echo 🔄 ขั้นตอนการใช้งาน:
+echo Usage Steps:
 echo.
-echo 1. ติดตั้งระบบ (เมนู 4) - ทำครั้งเดียวตอนเริ่มใช้งาน
-echo 2. เพิ่มรูปภาพแมลงลงในโฟลเดอร์ dataset/images/
-echo 3. ใช้เครื่องมือ Annotation (เมนู 1) เพื่อติดป้ายกำกับ
-echo 4. Train โมเดล (เมนู 2) เมื่อมีข้อมูล annotation พอแล้ว
-echo 5. ใช้เครื่องมือตรวจจับ (เมนู 3) เพื่อทดสอบโมเดล
+echo 1. Install System (Menu 5) - Do this once when starting
+echo 2. Add insect images to dataset/images/ folder
+echo 3. Use Annotation Tool (Menu 1) to label images
+echo 4. Train Model (Menu 2) when you have enough annotations
+echo 5. Use Detection Tool (Menu 3) to test the model
 echo.
-echo 💡 เทคนิคการใช้งาน:
+echo Usage Tips:
 echo.
-echo • ควรมี annotation อย่างน้อย 100+ รูปต่อคลาส
-echo • ใช้รูปภาพที่หลากหลาย (มุมมอง แสง พื้นหลัง)
-echo • ปรับ confidence threshold ในเครื่องมือตรวจจับ
-echo • บันทึกผลลัพธ์และสถิติเป็นประจำ
+echo • Need at least 100+ annotations per class
+echo • Use diverse images (angles, lighting, backgrounds)
+echo • Adjust confidence threshold in detection tool
+echo • Save results and statistics regularly
 echo.
-echo 📁 โครงสร้างไฟล์:
+echo File Structure:
 echo.
-echo dataset/images/      - ใส่รูปภาพต้นฉบับ
-echo dataset/annotations/ - ไฟล์ annotation (สร้างอัตโนมัติ)
-echo training/models/     - โมเดลที่ train แล้ว
-echo detection/output/    - ผลการตรวจจับที่บันทึก
+echo dataset/images/      - Place original images here
+echo dataset/annotations/ - Annotation files (auto-created)
+echo training/models/     - Trained models
+echo detection/output/    - Saved detection results
 echo.
-echo ⚠️  หากพบปัญหา:
+echo If you encounter problems:
 echo.
-echo • ตรวจสอบว่าติดตั้ง Python 3.8+ แล้ว
-echo • ลองติดตั้งระบบใหม่ (เมนู 4)
-echo • ตรวจสอบ requirements.txt
+echo • Check if Python 3.8+ is installed
+echo • Try reinstalling system (Menu 5)
+echo • Check requirements.txt
 echo.
 pause
 goto MAIN_MENU
@@ -106,7 +116,7 @@ goto MAIN_MENU
 :INVALID
 cls
 echo.
-echo ❌ ตัวเลือกไม่ถูกต้อง กรุณาเลือกใหม่ (1-6)
+echo Invalid option. Please select again (1-7)
 echo.
 pause
 goto MAIN_MENU
@@ -114,9 +124,9 @@ goto MAIN_MENU
 :EXIT
 cls
 echo.
-echo 👋 ขอบคุณที่ใช้ระบบตรวจจับแมลง!
+echo Thank you for using Insect Detection System!
 echo.
-echo 🐛 Happy Bug Detecting! 🐛
+echo Happy Bug Detecting!
 echo.
 pause
 exit

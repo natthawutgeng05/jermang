@@ -1,20 +1,20 @@
 @echo off
-echo 🚀 Desktop Insect Detection Tool (YOLO11)
+echo Desktop Insect Detection Tool (YOLO11)
 echo =========================================
 echo.
-echo 💡 ตัวเลือกการตรวจจับ (แนะนำ YOLO11):
-echo 1. 🖥️  Desktop Detection Tool (YOLO11 Auto-Load)
-echo 2. 📷 Camera Detection (Command Line)
-echo 3. 🖼️  Image Detection (Command Line)  
-echo 4. 📁 Batch Detection (Command Line)
+echo Detection Options (YOLO11 Recommended):
+echo 1. Desktop Detection Tool (YOLO11 Auto-Load)
+echo 2. Camera Detection (Command Line)
+echo 3. Image Detection (Command Line)  
+echo 4. Batch Detection (Command Line)
 echo.
-set /p choice="เลือกตัวเลือก (1-4): "
+set /p choice="Select option (1-4): "
 
 cd detection
 
 if "%choice%"=="1" (
-    echo 🚀 Starting YOLO11 desktop detection tool...
-    echo    💡 จะ auto-load YOLO11 model อัตโนมัติ
+    echo Starting YOLO11 desktop detection tool...
+    echo    Auto-loading YOLO11 model automatically
     python desktop_detection_tool.py
 ) else if "%choice%"=="2" (
     echo Starting camera detection...

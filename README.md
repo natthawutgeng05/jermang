@@ -150,6 +150,7 @@ python desktop_detection_tool.py
 ```
 
 **คุณสมบัติ YOLO11 ในโปรแกรม:**
+
 - 🔄 Auto-load YOLO11 เมื่อเปิดโปรแกรม
 - 🚀 ปุ่ม "โหลด YOLO11 อัตโนมัติ" สำหรับดาวน์โหลดใหม่
 - 📊 แสดงข้อมูลประสิทธิภาพ model แบบ real-time
