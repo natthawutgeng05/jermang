@@ -1,0 +1,23 @@
+# YOLO Data Configuration for Insect Detection
+# This file will be automatically generated during training
+
+path: ./models/dataset # dataset root dir
+train: train/images # train images (relative to 'path')
+val: val/images # val images (relative to 'path')
+test: test/images # test images (relative to 'path')
+
+# Number of classes
+nc: 10
+
+# Class names
+names:
+  0: butterfly # ผีเสื้อ
+  1: bee # ผึ้ง
+  2: ant # มด
+  3: dragonfly # แมลงปอ
+  4: beetle # ด้วง
+  5: mosquito # ยุง
+  6: fly # แมลงวัน
+  7: spider # แมงมุม
+  8: grasshopper # ตั๊กแตน
+  9: moth # ผีเสื้อกลางคืน

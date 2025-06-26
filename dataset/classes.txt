@@ -1,0 +1,11 @@
+durian_seed_borer
+butterfly
+bee
+ant
+dragonfly
+beetle
+mosquito
+fly
+spider
+grasshopper
+moth

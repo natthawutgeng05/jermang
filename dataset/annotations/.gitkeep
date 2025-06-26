@@ -1,0 +1,2 @@
+# This file ensures the annotations directory is tracked by git
+# YOLO format annotation files (.txt) will be saved here

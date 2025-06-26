@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ระบบ Annotation แมลง - Insect Annotation Tool</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename='style.css') }}"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <nav class="navbar navbar-dark bg-dark">
+      <div class="container-fluid">
+        <span class="navbar-brand mb-0 h1">
+          <i class="fas fa-bug"></i> ระบบ Annotation แมลง
+        </span>
+        <div class="d-flex">
+          <button
+            class="btn btn-outline-light me-2"
+            onclick="showUploadModal()"
+          >
+            <i class="fas fa-upload"></i> อัพโหลดรูป
+          </button>
+          <button class="btn btn-outline-light me-2" onclick="showClassModal()">
+            <i class="fas fa-tags"></i> จัดการคลาส
+          </button>
+          <button class="btn btn-outline-light" onclick="exportDataset()">
+            <i class="fas fa-download"></i> ส่งออกข้อมูล
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid mt-3">
+      <div class="row">
+        <!-- Sidebar - Image List -->
+        <div class="col-md-3">
+          <div class="card">
+            <div class="card-header">
+              <h5><i class="fas fa-images"></i> รายการรูปภาพ</h5>
+            </div>
+            <div class="card-body" style="max-height: 70vh; overflow-y: auto">
+              <div id="imageList">
+                {% for image in images %}
+                <div
+                  class="image-item p-2 border-bottom"
+                  onclick="loadImage('{{ image }}')"
+                >
+                  <img
+                    src="{{ url_for('uploaded_file', filename=image) }}"
+                    alt="{{ image }}"
+                    class="img-thumbnail mb-1"
+                    style="width: 100%; max-height: 100px; object-fit: cover"
+                  />
+                  <small class="d-block text-truncate">{{ image }}</small>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Canvas Area -->
+        <div class="col-md-6">
+          <div class="card">
+            <div
+              class="card-header d-flex justify-content-between align-items-center"
+            >
+              <h5 id="currentImageName">
+                <i class="fas fa-image"></i> เลือกรูปภาพเพื่อเริ่ม annotation
+              </h5>
+              <div class="btn-group" role="group">
+                <button
+                  class="btn btn-sm btn-outline-primary"
+                  onclick="zoomIn()"
+                >
+                  <i class="fas fa-search-plus"></i>
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-primary"
+                  onclick="zoomOut()"
+                >
+                  <i class="fas fa-search-minus"></i>
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-primary"
+                  onclick="resetZoom()"
+                >
+                  <i class="fas fa-expand-arrows-alt"></i>
+                </button>
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <div
+                id="canvasContainer"
+                style="position: relative; overflow: auto; max-height: 70vh"
+              >
+                <canvas
+                  id="annotationCanvas"
+                  style="border: 1px solid #ddd; display: block; margin: 0 auto"
+                ></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controls Panel -->
+        <div class="col-md-3">
+          <div class="card">
+            <div class="card-header">
+              <h5><i class="fas fa-tools"></i> เครื่องมือ Annotation</h5>
+            </div>
+            <div class="card-body">
+              <!-- Class Selection -->
+              <div class="mb-3">
+                <label class="form-label">เลือกชนิดแมลง:</label>
+                <select id="classSelect" class="form-select">
+                  {% for class in classes %}
+                  <option value="{{ loop.index0 }}">{{ class }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Current Mode -->
+              <div class="mb-3">
+                <label class="form-label">โหมดปัจจุบัน:</label>
+                <div class="btn-group w-100" role="group">
+                  <input
+                    type="radio"
+                    class="btn-check"
+                    name="mode"
+                    id="selectMode"
+                    value="select"
+                    checked
+                  />
+                  <label class="btn btn-outline-primary" for="selectMode">
+                    <i class="fas fa-mouse-pointer"></i> เลือก
+                  </label>
+                  <input
+                    type="radio"
+                    class="btn-check"
+                    name="mode"
+                    id="drawMode"
+                    value="draw"
+                  />
+                  <label class="btn btn-outline-success" for="drawMode">
+                    <i class="fas fa-square"></i> วาด
+                  </label>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="mb-3">
+                <button
+                  class="btn btn-success w-100 mb-2"
+                  onclick="saveAnnotations()"
+                >
+                  <i class="fas fa-save"></i> บันทึก Annotation
+                </button>
+                <button
+                  class="btn btn-warning w-100 mb-2"
+                  onclick="clearAnnotations()"
+                >
+                  <i class="fas fa-eraser"></i> ลบทั้งหมด
+                </button>
+                <button class="btn btn-danger w-100" onclick="deleteSelected()">
+                  <i class="fas fa-trash"></i> ลบที่เลือก
+                </button>
+              </div>
+
+              <!-- Annotation List -->
+              <div class="mt-4">
+                <h6><i class="fas fa-list"></i> รายการ Annotation</h6>
+                <div
+                  id="annotationList"
+                  style="max-height: 300px; overflow-y: auto"
+                >
+                  <!-- Annotations will be listed here -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div class="modal fade" id="uploadModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">อัพโหลดรูปภาพ</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <input
+              type="file"
+              id="fileInput"
+              class="form-control"
+              multiple
+              accept="image/*"
+            />
+            <div class="mt-2">
+              <small class="text-muted"
+                >รองรับไฟล์: PNG, JPG, JPEG, GIF, BMP</small
+              >
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              ยกเลิก
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              onclick="uploadFiles()"
+            >
+              อัพโหลด
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Class Management Modal -->
+    <div class="modal fade" id="classModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">จัดการคลาสแมลง</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">เพิ่มคลาสใหม่:</label>
+              <div class="input-group">
+                <input
+                  type="text"
+                  id="newClassName"
+                  class="form-control"
+                  placeholder="ชื่อคลาสใหม่"
+                />
+                <button class="btn btn-success" onclick="addClass()">
+                  เพิ่ม
+                </button>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">คลาสปัจจุบัน:</label>
+              <div id="classList">
+                <!-- Classes will be listed here -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='annotation.js') }}"></script>
+  </body>
+</html>

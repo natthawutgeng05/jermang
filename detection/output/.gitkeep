@@ -1,0 +1,2 @@
+# This file ensures the output directory is tracked by git
+# Detection results and saved frames will be stored here

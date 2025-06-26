@@ -1,0 +1,34 @@
+# GUI Frameworks for Desktop Applications
+PySide6>=6.8.0
+tkinter-tooltip>=2.1.0
+
+# Computer Vision and Deep Learning
+opencv-python>=4.8.0
+ultralytics>=8.0.0
+torch>=2.0.0
+torchvision>=0.15.0
+Pillow>=10.0.0
+
+# Data Processing
+numpy>=1.24.0
+pandas>=2.0.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Image Processing
+imageio>=2.31.0
+scikit-image>=0.21.0
+
+# Web Interface (Optional - for backup web version)
+Flask>=2.3.0
+Flask-CORS>=4.0.0
+Jinja2>=3.1.0
+Werkzeug>=2.3.0
+
+# Machine Learning
+scikit-learn>=1.3.0
+
+# Utilities
+tqdm>=4.66.0
+PyYAML>=6.0.0
+requests>=2.31.0
