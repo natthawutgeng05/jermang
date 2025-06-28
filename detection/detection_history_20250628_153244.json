@@ -1,0 +1,739 @@
+{
+  "session_info": {
+    "start_time": "2025-06-28 15:27:24",
+    "total_detections": 52,
+    "class_counts": {
+      "durian_seed_borer": 52
+    }
+  },
+  "detections": [
+    {
+      "timestamp": "15:28:38",
+      "detection": {
+        "bbox": [
+          236,
+          31,
+          389,
+          242
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5739482045173645
+      }
+    },
+    {
+      "timestamp": "15:28:38",
+      "detection": {
+        "bbox": [
+          213,
+          37,
+          374,
+          271
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5860875248908997
+      }
+    },
+    {
+      "timestamp": "15:28:38",
+      "detection": {
+        "bbox": [
+          173,
+          28,
+          346,
+          276
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5432665348052979
+      }
+    },
+    {
+      "timestamp": "15:28:39",
+      "detection": {
+        "bbox": [
+          186,
+          31,
+          354,
+          265
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5655460953712463
+      }
+    },
+    {
+      "timestamp": "15:28:47",
+      "detection": {
+        "bbox": [
+          154,
+          53,
+          331,
+          303
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5244073271751404
+      }
+    },
+    {
+      "timestamp": "15:28:48",
+      "detection": {
+        "bbox": [
+          183,
+          48,
+          355,
+          286
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5268867611885071
+      }
+    },
+    {
+      "timestamp": "15:28:48",
+      "detection": {
+        "bbox": [
+          188,
+          56,
+          357,
+          293
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.6764264702796936
+      }
+    },
+    {
+      "timestamp": "15:28:48",
+      "detection": {
+        "bbox": [
+          186,
+          55,
+          361,
+          288
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5996440052986145
+      }
+    },
+    {
+      "timestamp": "15:28:49",
+      "detection": {
+        "bbox": [
+          183,
+          56,
+          350,
+          288
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.6483326554298401
+      }
+    },
+    {
+      "timestamp": "15:28:49",
+      "detection": {
+        "bbox": [
+          186,
+          61,
+          352,
+          291
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.6648082733154297
+      }
+    },
+    {
+      "timestamp": "15:28:52",
+      "detection": {
+        "bbox": [
+          264,
+          31,
+          418,
+          241
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5328798890113831
+      }
+    },
+    {
+      "timestamp": "15:28:55",
+      "detection": {
+        "bbox": [
+          273,
+          57,
+          411,
+          242
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5139264464378357
+      }
+    },
+    {
+      "timestamp": "15:28:57",
+      "detection": {
+        "bbox": [
+          247,
+          57,
+          384,
+          242
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.521468997001648
+      }
+    },
+    {
+      "timestamp": "15:28:58",
+      "detection": {
+        "bbox": [
+          243,
+          30,
+          381,
+          218
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5334215760231018
+      }
+    },
+    {
+      "timestamp": "15:28:59",
+      "detection": {
+        "bbox": [
+          242,
+          55,
+          378,
+          241
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5096437931060791
+      }
+    },
+    {
+      "timestamp": "15:29:32",
+      "detection": {
+        "bbox": [
+          207,
+          56,
+          366,
+          292
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5117982029914856
+      }
+    },
+    {
+      "timestamp": "15:30:31",
+      "detection": {
+        "bbox": [
+          272,
+          87,
+          417,
+          285
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.512726902961731
+      }
+    },
+    {
+      "timestamp": "15:30:34",
+      "detection": {
+        "bbox": [
+          247,
+          78,
+          393,
+          273
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5316587090492249
+      }
+    },
+    {
+      "timestamp": "15:30:35",
+      "detection": {
+        "bbox": [
+          239,
+          98,
+          381,
+          299
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5624392628669739
+      }
+    },
+    {
+      "timestamp": "15:30:35",
+      "detection": {
+        "bbox": [
+          238,
+          97,
+          378,
+          299
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5404269695281982
+      }
+    },
+    {
+      "timestamp": "15:30:35",
+      "detection": {
+        "bbox": [
+          243,
+          98,
+          385,
+          300
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5761194229125977
+      }
+    },
+    {
+      "timestamp": "15:30:35",
+      "detection": {
+        "bbox": [
+          239,
+          100,
+          382,
+          301
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5550944805145264
+      }
+    },
+    {
+      "timestamp": "15:30:36",
+      "detection": {
+        "bbox": [
+          240,
+          104,
+          380,
+          302
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5087355971336365
+      }
+    },
+    {
+      "timestamp": "15:30:44",
+      "detection": {
+        "bbox": [
+          173,
+          128,
+          321,
+          335
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.6429986357688904
+      }
+    },
+    {
+      "timestamp": "15:30:44",
+      "detection": {
+        "bbox": [
+          170,
+          130,
+          320,
+          338
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5454095005989075
+      }
+    },
+    {
+      "timestamp": "15:30:45",
+      "detection": {
+        "bbox": [
+          168,
+          133,
+          320,
+          345
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5117947459220886
+      }
+    },
+    {
+      "timestamp": "15:30:45",
+      "detection": {
+        "bbox": [
+          154,
+          161,
+          305,
+          369
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5006922483444214
+      }
+    },
+    {
+      "timestamp": "15:30:46",
+      "detection": {
+        "bbox": [
+          156,
+          153,
+          307,
+          364
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5105847716331482
+      }
+    },
+    {
+      "timestamp": "15:30:47",
+      "detection": {
+        "bbox": [
+          169,
+          146,
+          317,
+          351
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.54535311460495
+      }
+    },
+    {
+      "timestamp": "15:30:47",
+      "detection": {
+        "bbox": [
+          170,
+          149,
+          321,
+          357
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5470638871192932
+      }
+    },
+    {
+      "timestamp": "15:30:48",
+      "detection": {
+        "bbox": [
+          178,
+          159,
+          329,
+          364
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5153935551643372
+      }
+    },
+    {
+      "timestamp": "15:30:50",
+      "detection": {
+        "bbox": [
+          176,
+          171,
+          328,
+          372
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.51340651512146
+      }
+    },
+    {
+      "timestamp": "15:30:51",
+      "detection": {
+        "bbox": [
+          179,
+          185,
+          327,
+          389
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5189255475997925
+      }
+    },
+    {
+      "timestamp": "15:30:52",
+      "detection": {
+        "bbox": [
+          173,
+          155,
+          320,
+          363
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5905950665473938
+      }
+    },
+    {
+      "timestamp": "15:30:52",
+      "detection": {
+        "bbox": [
+          154,
+          155,
+          304,
+          368
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5928075313568115
+      }
+    },
+    {
+      "timestamp": "15:30:54",
+      "detection": {
+        "bbox": [
+          144,
+          158,
+          294,
+          370
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5185529589653015
+      }
+    },
+    {
+      "timestamp": "15:30:59",
+      "detection": {
+        "bbox": [
+          144,
+          59,
+          289,
+          268
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5489588975906372
+      }
+    },
+    {
+      "timestamp": "15:30:59",
+      "detection": {
+        "bbox": [
+          141,
+          58,
+          281,
+          267
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5449371933937073
+      }
+    },
+    {
+      "timestamp": "15:31:00",
+      "detection": {
+        "bbox": [
+          141,
+          89,
+          282,
+          297
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5055344700813293
+      }
+    },
+    {
+      "timestamp": "15:31:01",
+      "detection": {
+        "bbox": [
+          144,
+          89,
+          288,
+          298
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5554322600364685
+      }
+    },
+    {
+      "timestamp": "15:31:01",
+      "detection": {
+        "bbox": [
+          144,
+          94,
+          287,
+          301
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5726749300956726
+      }
+    },
+    {
+      "timestamp": "15:31:03",
+      "detection": {
+        "bbox": [
+          144,
+          101,
+          284,
+          303
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5791391730308533
+      }
+    },
+    {
+      "timestamp": "15:31:04",
+      "detection": {
+        "bbox": [
+          142,
+          98,
+          281,
+          303
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5919825434684753
+      }
+    },
+    {
+      "timestamp": "15:31:14",
+      "detection": {
+        "bbox": [
+          149,
+          58,
+          299,
+          273
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5360363721847534
+      }
+    },
+    {
+      "timestamp": "15:31:14",
+      "detection": {
+        "bbox": [
+          132,
+          64,
+          281,
+          282
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5796049237251282
+      }
+    },
+    {
+      "timestamp": "15:31:15",
+      "detection": {
+        "bbox": [
+          132,
+          159,
+          284,
+          373
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5490826368331909
+      }
+    },
+    {
+      "timestamp": "15:31:16",
+      "detection": {
+        "bbox": [
+          143,
+          155,
+          297,
+          369
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.6165244579315186
+      }
+    },
+    {
+      "timestamp": "15:31:16",
+      "detection": {
+        "bbox": [
+          139,
+          152,
+          292,
+          368
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.6178715825080872
+      }
+    },
+    {
+      "timestamp": "15:31:16",
+      "detection": {
+        "bbox": [
+          141,
+          154,
+          294,
+          369
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.6576352715492249
+      }
+    },
+    {
+      "timestamp": "15:31:16",
+      "detection": {
+        "bbox": [
+          141,
+          158,
+          293,
+          374
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.6510701775550842
+      }
+    },
+    {
+      "timestamp": "15:31:16",
+      "detection": {
+        "bbox": [
+          136,
+          166,
+          289,
+          382
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5373803377151489
+      }
+    },
+    {
+      "timestamp": "15:31:17",
+      "detection": {
+        "bbox": [
+          135,
+          169,
+          293,
+          384
+        ],
+        "class_id": 0,
+        "class_name": "durian_seed_borer",
+        "confidence": 0.5031504034996033
+      }
+    }
+  ]
+}

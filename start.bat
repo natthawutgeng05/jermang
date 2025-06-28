@@ -14,23 +14,25 @@ echo.
 echo     1. Annotation Tool (for labeling images)
 echo     2. Model Training (YOLO11 Default)
 echo     3. Detection Tool (YOLO11 Auto-Load)
-echo     4. Model Comparison (YOLOv8 vs v10 vs v11)
-echo     5. Install/Setup System
-echo     6. User Manual
-echo     7. Exit Program
+echo     4. Web Monitor (Mobile Remote Access)
+echo     5. Model Comparison (YOLOv8 vs v10 vs v11)
+echo     6. Install/Setup System
+echo     7. User Manual
+echo     8. Exit Program
 echo.
 echo     ===============================================
 echo.
 
-set /p choice="Please select (1-7): "
+set /p choice="Please select (1-8): "
 
 if "%choice%"=="1" goto ANNOTATION
 if "%choice%"=="2" goto TRAINING  
 if "%choice%"=="3" goto DETECTION
-if "%choice%"=="4" goto COMPARISON
-if "%choice%"=="5" goto SETUP
-if "%choice%"=="6" goto HELP
-if "%choice%"=="7" goto EXIT
+if "%choice%"=="4" goto WEBMONITOR
+if "%choice%"=="5" goto COMPARISON
+if "%choice%"=="6" goto SETUP
+if "%choice%"=="7" goto HELP
+if "%choice%"=="8" goto EXIT
 goto INVALID
 
 :ANNOTATION
@@ -55,6 +57,14 @@ echo.
 echo Starting YOLO11 Detection Tool...
 echo.
 call run_yolo11_detection.bat
+goto MAIN_MENU
+
+:WEBMONITOR
+cls
+echo.
+echo Starting Web-based Remote Monitor...
+echo.
+call run_web_monitor.bat
 goto MAIN_MENU
 
 :COMPARISON
@@ -116,7 +126,7 @@ goto MAIN_MENU
 :INVALID
 cls
 echo.
-echo Invalid option. Please select again (1-7)
+echo Invalid option. Please select again (1-8)
 echo.
 pause
 goto MAIN_MENU

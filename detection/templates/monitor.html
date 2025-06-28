@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insect Detection Monitor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .video-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .video-container {
+            position: relative;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+        
+        #videoFeed {
+            width: 100%;
+            height: auto;
+            max-height: 480px;
+            object-fit: contain;
+        }
+        
+        .video-placeholder {
+            width: 100%;
+            height: 360px;
+            background: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-size: 1.2em;
+            color: #888;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .btn-start {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-stop {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-settings {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .btn-mobile {
+            background: #FF9800;
+            color: white;
+        }
+        
+        .sidebar {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .panel h3 {
+            margin-bottom: 15px;
+            color: #fff;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 5px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-online {
+            background: #4CAF50;
+            box-shadow: 0 0 10px #4CAF50;
+        }
+        
+        .status-offline {
+            background: #f44336;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+        }
+        
+        .detection-item {
+            background: rgba(76, 175, 80, 0.2);
+            border-left: 4px solid #4CAF50;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+        
+        .detection-time {
+            color: #ccc;
+            font-size: 0.8em;
+        }
+        
+        .settings-group {
+            margin: 15px 0;
+        }
+        
+        .settings-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .settings-group input, .settings-group select {
+            width: 100%;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        
+        .settings-group input::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .history-scroll {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                justify-content: center;
+            }
+            
+            .btn {
+                flex: 1;
+                min-width: 120px;
+            }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header fade-in">
+            <h1>🐛 Insect Detection Monitor</h1>
+            <p>Real-time YOLO11 Insect Detection System</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="video-section fade-in">
+                <h3>Live Camera Feed</h3>
+                <div class="video-container">
+                    <img id="videoFeed" style="display: none;" alt="Video Feed">
+                    <div id="videoPlaceholder" class="video-placeholder">
+                        🎥 Camera feed will appear here
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button id="startBtn" class="btn btn-start">▶️ Start Detection</button>
+                    <button id="stopBtn" class="btn btn-stop">⏹️ Stop Detection</button>
+                    <button id="settingsBtn" class="btn btn-settings">⚙️ Settings</button>
+                    <a href="/mobile" class="btn btn-mobile">📱 Mobile View</a>
+                </div>
+            </div>
+            
+            <div class="sidebar">
+                <div class="panel fade-in">
+                    <h3>System Status</h3>
+                    <div class="stat-item">
+                        <span>Connection:</span>
+                        <span><span id="connectionStatus" class="status-indicator status-offline"></span><span id="connectionText">Disconnected</span></span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Model:</span>
+                        <span id="modelStatus">Not Loaded</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Detection:</span>
+                        <span id="detectionStatus">Stopped</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>FPS:</span>
+                        <span id="fpsDisplay">0</span>
+                    </div>
+                </div>
+                
+                <div class="panel fade-in">
+                    <h3>Detection Statistics</h3>
+                    <div class="stat-item">
+                        <span>Total Detections:</span>
+                        <span id="totalDetections">0</span>
+                    </div>
+                    <div id="classStats"></div>
+                    <button id="resetStatsBtn" class="btn btn-settings" style="width: 100%; margin-top: 10px;">🔄 Reset Stats</button>
+                </div>
+                
+                <div class="panel fade-in">
+                    <h3>Recent Detections</h3>
+                    <div id="recentDetections" class="history-scroll">
+                        <p style="text-align: center; color: #888;">No detections yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer fade-in">
+            <p>🚀 Powered by YOLO11 • Access from mobile at: <strong>/mobile</strong></p>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #333; padding: 30px; border-radius: 15px; min-width: 400px;">
+            <h3 style="margin-bottom: 20px;">Detection Settings</h3>
+            
+            <div class="settings-group">
+                <label>Confidence Threshold:</label>
+                <input type="range" id="confidenceSlider" min="0.1" max="0.9" step="0.1" value="0.5">
+                <span id="confidenceValue">0.5</span>
+            </div>
+            
+            <div class="settings-group">
+                <label>Camera ID:</label>
+                <select id="cameraSelect">
+                    <option value="0">Camera 0 (Default)</option>
+                    <option value="1">Camera 1</option>
+                    <option value="2">Camera 2</option>
+                </select>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button id="saveSettingsBtn" class="btn btn-start">💾 Save</button>
+                <button id="cancelSettingsBtn" class="btn btn-stop">❌ Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Socket.IO
+        const socket = io();
+        
+        // DOM Elements
+        const videoFeed = document.getElementById('videoFeed');
+        const videoPlaceholder = document.getElementById('videoPlaceholder');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const resetStatsBtn = document.getElementById('resetStatsBtn');
+        
+        // Status elements
+        const connectionStatus = document.getElementById('connectionStatus');
+        const connectionText = document.getElementById('connectionText');
+        const modelStatus = document.getElementById('modelStatus');
+        const detectionStatus = document.getElementById('detectionStatus');
+        const fpsDisplay = document.getElementById('fpsDisplay');
+        const totalDetections = document.getElementById('totalDetections');
+        const classStats = document.getElementById('classStats');
+        const recentDetections = document.getElementById('recentDetections');
+        
+        // Settings modal
+        const settingsModal = document.getElementById('settingsModal');
+        const confidenceSlider = document.getElementById('confidenceSlider');
+        const confidenceValue = document.getElementById('confidenceValue');
+        const cameraSelect = document.getElementById('cameraSelect');
+        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        const cancelSettingsBtn = document.getElementById('cancelSettingsBtn');
+        
+        // Socket event handlers
+        socket.on('connect', function() {
+            console.log('Connected to server');
+            connectionStatus.className = 'status-indicator status-online';
+            connectionText.textContent = 'Connected';
+        });
+        
+        socket.on('disconnect', function() {
+            console.log('Disconnected from server');
+            connectionStatus.className = 'status-indicator status-offline';
+            connectionText.textContent = 'Disconnected';
+        });
+        
+        socket.on('status', function(data) {
+            updateStatus(data);
+        });
+        
+        socket.on('frame', function(data) {
+            if (data.image) {
+                videoFeed.src = 'data:image/jpeg;base64,' + data.image;
+                videoFeed.style.display = 'block';
+                videoPlaceholder.style.display = 'none';
+            }
+        });
+        
+        socket.on('stats_update', function(data) {
+            updateStats(data);
+        });
+        
+        socket.on('new_detection', function(data) {
+            addDetectionToHistory(data);
+        });
+        
+        // Button event handlers
+        startBtn.onclick = function() {
+            fetch('/api/detection/start', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'started') {
+                        detectionStatus.textContent = 'Running';
+                        startBtn.disabled = true;
+                        stopBtn.disabled = false;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        };
+        
+        stopBtn.onclick = function() {
+            fetch('/api/detection/stop', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'stopped') {
+                        detectionStatus.textContent = 'Stopped';
+                        startBtn.disabled = false;
+                        stopBtn.disabled = true;
+                        videoFeed.style.display = 'none';
+                        videoPlaceholder.style.display = 'flex';
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        };
+        
+        settingsBtn.onclick = function() {
+            settingsModal.style.display = 'block';
+            loadSettings();
+        };
+        
+        resetStatsBtn.onclick = function() {
+            if (confirm('Reset all detection statistics?')) {
+                fetch('/api/reset_stats', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'reset') {
+                            location.reload();
+                        }
+                    });
+            }
+        };
+        
+        cancelSettingsBtn.onclick = function() {
+            settingsModal.style.display = 'none';
+        };
+        
+        saveSettingsBtn.onclick = function() {
+            const settings = {
+                confidence_threshold: parseFloat(confidenceSlider.value),
+                camera_id: parseInt(cameraSelect.value)
+            };
+            
+            fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(settings)
+            })
+            .then(response => response.json())
+            .then(data => {
+                settingsModal.style.display = 'none';
+                alert('Settings saved!');
+            })
+            .catch(error => console.error('Error:', error));
+        };
+        
+        confidenceSlider.oninput = function() {
+            confidenceValue.textContent = this.value;
+        };
+        
+        // Helper functions
+        function updateStatus(data) {
+            modelStatus.textContent = data.model_loaded ? 'YOLO11 Loaded' : 'Not Loaded';
+            detectionStatus.textContent = data.is_detecting ? 'Running' : 'Stopped';
+            
+            startBtn.disabled = data.is_detecting || !data.model_loaded;
+            stopBtn.disabled = !data.is_detecting;
+            
+            if (data.stats) {
+                updateStats(data.stats);
+            }
+        }
+        
+        function updateStats(stats) {
+            fpsDisplay.textContent = stats.fps ? stats.fps.toFixed(1) : '0';
+            totalDetections.textContent = stats.total_detections || '0';
+            
+            // Update class statistics
+            if (stats.class_counts) {
+                classStats.innerHTML = '';
+                Object.entries(stats.class_counts).forEach(([className, count]) => {
+                    if (count > 0) {
+                        const statDiv = document.createElement('div');
+                        statDiv.className = 'stat-item';
+                        statDiv.innerHTML = `<span>${className}:</span><span>${count}</span>`;
+                        classStats.appendChild(statDiv);
+                    }
+                });
+            }
+        }
+        
+        function addDetectionToHistory(detection) {
+            const detectionDiv = document.createElement('div');
+            detectionDiv.className = 'detection-item';
+            const time = new Date(detection.timestamp).toLocaleTimeString();
+            detectionDiv.innerHTML = `
+                <strong>${detection.class_name}</strong> (${detection.confidence.toFixed(2)})
+                <div class="detection-time">${time}</div>
+            `;
+            
+            if (recentDetections.firstChild && recentDetections.firstChild.textContent.includes('No detections')) {
+                recentDetections.innerHTML = '';
+            }
+            
+            recentDetections.insertBefore(detectionDiv, recentDetections.firstChild);
+            
+            // Keep only last 10 detections
+            while (recentDetections.children.length > 10) {
+                recentDetections.removeChild(recentDetections.lastChild);
+            }
+        }
+        
+        function loadSettings() {
+            fetch('/api/settings')
+                .then(response => response.json())
+                .then(data => {
+                    confidenceSlider.value = data.confidence_threshold;
+                    confidenceValue.textContent = data.confidence_threshold;
+                    cameraSelect.value = data.camera_id;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+        
+        // Initial load
+        fetch('/api/status')
+            .then(response => response.json())
+            .then(data => updateStatus(data))
+            .catch(error => console.error('Error:', error));
+        
+        // Request frames periodically when detecting
+        setInterval(() => {
+            socket.emit('request_frame');
+        }, 100);
+    </script>
+</body>
+</html>
