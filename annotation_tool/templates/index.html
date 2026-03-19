@@ -23,17 +23,27 @@
         <span class="navbar-brand mb-0 h1">
           <i class="fas fa-bug"></i> ระบบ Annotation แมลง
         </span>
-        <div class="d-flex">
+        <div class="d-flex align-items-center">
+          <!-- สถิติแบบย่อในแถบนำทาง -->
+          <span class="text-light me-3 small" id="navStats">
+            <i class="fas fa-images"></i> <span id="navTotalImages">0</span> รูป
+            &nbsp;|&nbsp;
+            <i class="fas fa-tag"></i> <span id="navTotalAnnotations">0</span> annotation
+          </span>
           <button
             class="btn btn-outline-light me-2"
             onclick="showUploadModal()"
+            title="อัพโหลดรูปภาพใหม่"
           >
             <i class="fas fa-upload"></i> อัพโหลดรูป
           </button>
-          <button class="btn btn-outline-light me-2" onclick="showClassModal()">
+          <button class="btn btn-outline-light me-2" onclick="showClassModal()" title="จัดการคลาสแมลง">
             <i class="fas fa-tags"></i> จัดการคลาส
           </button>
-          <button class="btn btn-outline-light" onclick="exportDataset()">
+          <button class="btn btn-outline-info me-2" onclick="showStatsModal()" title="ดูสถิติข้อมูล">
+            <i class="fas fa-chart-bar"></i> สถิติ
+          </button>
+          <button class="btn btn-outline-light" onclick="exportDataset()" title="ส่งออกข้อมูลชุด">
             <i class="fas fa-download"></i> ส่งออกข้อมูล
           </button>
         </div>
@@ -42,24 +52,36 @@
 
     <div class="container-fluid mt-3">
       <div class="row">
-        <!-- Sidebar - Image List -->
+        <!-- แถบด้านซ้าย - รายการรูปภาพ -->
         <div class="col-md-3">
           <div class="card">
-            <div class="card-header">
-              <h5><i class="fas fa-images"></i> รายการรูปภาพ</h5>
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0"><i class="fas fa-images"></i> รายการรูปภาพ</h5>
+              <span class="badge bg-primary" id="imageCountBadge">{{ images|length }}</span>
             </div>
-            <div class="card-body" style="max-height: 70vh; overflow-y: auto">
+            <!-- ช่องค้นหารูปภาพ -->
+            <div class="card-body pb-0">
+              <input
+                type="text"
+                id="imageSearch"
+                class="form-control form-control-sm mb-2"
+                placeholder="ค้นหารูปภาพ..."
+                oninput="filterImageList(this.value)"
+              />
+            </div>
+            <div class="card-body pt-1" style="max-height: 65vh; overflow-y: auto">
               <div id="imageList">
                 {% for image in images %}
                 <div
                   class="image-item p-2 border-bottom"
                   onclick="loadImage('{{ image }}')"
+                  data-filename="{{ image }}"
                 >
                   <img
                     src="{{ url_for('uploaded_file', filename=image) }}"
                     alt="{{ image }}"
                     class="img-thumbnail mb-1"
-                    style="width: 100%; max-height: 100px; object-fit: cover"
+                    style="width: 100%; max-height: 80px; object-fit: cover"
                   />
                   <small class="d-block text-truncate">{{ image }}</small>
                 </div>
@@ -69,31 +91,34 @@
           </div>
         </div>
 
-        <!-- Main Canvas Area -->
+        <!-- พื้นที่วาด Canvas หลัก -->
         <div class="col-md-6">
           <div class="card">
             <div
               class="card-header d-flex justify-content-between align-items-center"
             >
-              <h5 id="currentImageName">
+              <h5 id="currentImageName" class="mb-0">
                 <i class="fas fa-image"></i> เลือกรูปภาพเพื่อเริ่ม annotation
               </h5>
               <div class="btn-group" role="group">
                 <button
                   class="btn btn-sm btn-outline-primary"
                   onclick="zoomIn()"
+                  title="ขยาย"
                 >
                   <i class="fas fa-search-plus"></i>
                 </button>
                 <button
                   class="btn btn-sm btn-outline-primary"
                   onclick="zoomOut()"
+                  title="ย่อ"
                 >
                   <i class="fas fa-search-minus"></i>
                 </button>
                 <button
                   class="btn btn-sm btn-outline-primary"
                   onclick="resetZoom()"
+                  title="รีเซ็ตการซูม"
                 >
                   <i class="fas fa-expand-arrows-alt"></i>
                 </button>
@@ -110,19 +135,24 @@
                 ></canvas>
               </div>
             </div>
+            <!-- ข้อมูลขนาดรูปและพิกัดเมาส์ -->
+            <div class="card-footer text-muted small d-flex justify-content-between">
+              <span id="imageSizeInfo">ขนาดรูป: -</span>
+              <span id="mouseCoords">ตำแหน่ง: -</span>
+            </div>
           </div>
         </div>
 
-        <!-- Controls Panel -->
+        <!-- แผงควบคุม -->
         <div class="col-md-3">
           <div class="card">
             <div class="card-header">
-              <h5><i class="fas fa-tools"></i> เครื่องมือ Annotation</h5>
+              <h5 class="mb-0"><i class="fas fa-tools"></i> เครื่องมือ Annotation</h5>
             </div>
             <div class="card-body">
-              <!-- Class Selection -->
+              <!-- เลือกชนิดแมลง -->
               <div class="mb-3">
-                <label class="form-label">เลือกชนิดแมลง:</label>
+                <label class="form-label fw-semibold">ชนิดแมลง:</label>
                 <select id="classSelect" class="form-select">
                   {% for class in classes %}
                   <option value="{{ loop.index0 }}">{{ class }}</option>
@@ -130,9 +160,36 @@
                 </select>
               </div>
 
-              <!-- Current Mode -->
+              <!-- ความมั่นใจในการ annotation -->
               <div class="mb-3">
-                <label class="form-label">โหมดปัจจุบัน:</label>
+                <label class="form-label fw-semibold">
+                  ความมั่นใจ: <span id="confidenceValue">1.0</span>
+                </label>
+                <input
+                  type="range"
+                  id="confidenceSlider"
+                  class="form-range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value="1.0"
+                />
+              </div>
+
+              <!-- หมายเหตุสำหรับ annotation -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold">หมายเหตุ:</label>
+                <textarea
+                  id="annotationNote"
+                  class="form-control form-control-sm"
+                  rows="2"
+                  placeholder="บันทึกหมายเหตุ (ไม่บังคับ)..."
+                ></textarea>
+              </div>
+
+              <!-- โหมดปัจจุบัน -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold">โหมด:</label>
                 <div class="btn-group w-100" role="group">
                   <input
                     type="radio"
@@ -158,7 +215,7 @@
                 </div>
               </div>
 
-              <!-- Action Buttons -->
+              <!-- ปุ่มการดำเนินการ -->
               <div class="mb-3">
                 <button
                   class="btn btn-success w-100 mb-2"
@@ -177,14 +234,17 @@
                 </button>
               </div>
 
-              <!-- Annotation List -->
-              <div class="mt-4">
-                <h6><i class="fas fa-list"></i> รายการ Annotation</h6>
+              <!-- รายการ Annotation -->
+              <div class="mt-2">
+                <h6 class="d-flex justify-content-between">
+                  <span><i class="fas fa-list"></i> รายการ Annotation</span>
+                  <span class="badge bg-secondary" id="annotationCountBadge">0</span>
+                </h6>
                 <div
                   id="annotationList"
-                  style="max-height: 300px; overflow-y: auto"
+                  style="max-height: 250px; overflow-y: auto"
                 >
-                  <!-- Annotations will be listed here -->
+                  <!-- รายการ annotation จะแสดงที่นี่ -->
                 </div>
               </div>
             </div>
@@ -193,12 +253,12 @@
       </div>
     </div>
 
-    <!-- Upload Modal -->
+    <!-- Modal อัพโหลดรูป -->
     <div class="modal fade" id="uploadModal" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">อัพโหลดรูปภาพ</h5>
+            <h5 class="modal-title"><i class="fas fa-upload"></i> อัพโหลดรูปภาพ</h5>
             <button
               type="button"
               class="btn-close"
@@ -215,7 +275,7 @@
             />
             <div class="mt-2">
               <small class="text-muted"
-                >รองรับไฟล์: PNG, JPG, JPEG, GIF, BMP</small
+                ><i class="fas fa-info-circle"></i> รองรับไฟล์: PNG, JPG, JPEG, GIF, BMP</small
               >
             </div>
           </div>
@@ -232,19 +292,19 @@
               class="btn btn-primary"
               onclick="uploadFiles()"
             >
-              อัพโหลด
+              <i class="fas fa-upload"></i> อัพโหลด
             </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Class Management Modal -->
+    <!-- Modal จัดการคลาส -->
     <div class="modal fade" id="classModal" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">จัดการคลาสแมลง</h5>
+            <h5 class="modal-title"><i class="fas fa-tags"></i> จัดการคลาสแมลง</h5>
             <button
               type="button"
               class="btn-close"
@@ -253,25 +313,179 @@
           </div>
           <div class="modal-body">
             <div class="mb-3">
-              <label class="form-label">เพิ่มคลาสใหม่:</label>
+              <label class="form-label fw-semibold">เพิ่มคลาสใหม่:</label>
               <div class="input-group">
                 <input
                   type="text"
                   id="newClassName"
                   class="form-control"
-                  placeholder="ชื่อคลาสใหม่"
+                  placeholder="ชื่อคลาสใหม่ (ภาษาอังกฤษ หรือไทย)"
                 />
                 <button class="btn btn-success" onclick="addClass()">
-                  เพิ่ม
+                  <i class="fas fa-plus"></i> เพิ่ม
                 </button>
               </div>
+              <small class="text-muted">ตัวอย่าง: butterfly, ผีเสื้อ, bee</small>
             </div>
             <div class="mb-3">
-              <label class="form-label">คลาสปัจจุบัน:</label>
+              <label class="form-label fw-semibold">คลาสที่มีอยู่:</label>
               <div id="classList">
-                <!-- Classes will be listed here -->
+                <!-- รายชื่อคลาสจะแสดงที่นี่ -->
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal สถิติข้อมูล -->
+    <div class="modal fade" id="statsModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="fas fa-chart-bar"></i> สถิติชุดข้อมูล</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <!-- การ์ดสรุปสถิติหลัก -->
+            <div class="row mb-3" id="statsSummary">
+              <div class="col-6 col-md-3">
+                <div class="card text-center border-primary">
+                  <div class="card-body py-2">
+                    <h4 class="text-primary mb-0" id="statTotalImages">-</h4>
+                    <small class="text-muted">รูปภาพทั้งหมด</small>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="card text-center border-success">
+                  <div class="card-body py-2">
+                    <h4 class="text-success mb-0" id="statAnnotatedImages">-</h4>
+                    <small class="text-muted">รูปที่ annotate แล้ว</small>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="card text-center border-info">
+                  <div class="card-body py-2">
+                    <h4 class="text-info mb-0" id="statTotalAnnotations">-</h4>
+                    <small class="text-muted">จำนวน annotation</small>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="card text-center border-warning">
+                  <div class="card-body py-2">
+                    <h4 class="text-warning mb-0" id="statTotalClasses">-</h4>
+                    <small class="text-muted">จำนวนคลาส</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- ตารางการกระจายตามคลาส -->
+            <h6><i class="fas fa-table"></i> การกระจาย annotation ตามคลาส</h6>
+            <div class="table-responsive">
+              <table class="table table-sm table-striped" id="classDistTable">
+                <thead>
+                  <tr>
+                    <th>ชนิดแมลง</th>
+                    <th class="text-end">จำนวน</th>
+                    <th>สัดส่วน</th>
+                  </tr>
+                </thead>
+                <tbody id="classDistBody">
+                  <!-- ข้อมูลจะแสดงที่นี่ -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+            <button type="button" class="btn btn-primary" onclick="refreshStats()">
+              <i class="fas fa-sync"></i> รีเฟรช
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal แก้ไข Annotation -->
+    <div class="modal fade" id="editAnnotationModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="fas fa-edit"></i> แก้ไข Annotation</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="editAnnotationIndex" value="" />
+            <div class="mb-3">
+              <label class="form-label fw-semibold">ชนิดแมลง:</label>
+              <select id="editClassSelect" class="form-select">
+                {% for class in classes %}
+                <option value="{{ loop.index0 }}">{{ class }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">
+                ความมั่นใจ: <span id="editConfidenceValue">1.0</span>
+              </label>
+              <input
+                type="range"
+                id="editConfidenceSlider"
+                class="form-range"
+                min="0"
+                max="1"
+                step="0.05"
+                value="1.0"
+              />
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">หมายเหตุ:</label>
+              <textarea
+                id="editAnnotationNote"
+                class="form-control"
+                rows="3"
+                placeholder="บันทึกหมายเหตุ (ไม่บังคับ)..."
+              ></textarea>
+            </div>
+            <!-- ข้อมูลพิกัด (อ่านอย่างเดียว) -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold text-muted">พิกัด (YOLO format):</label>
+              <div class="row g-2">
+                <div class="col-6">
+                  <label class="form-label small text-muted">จุดกึ่งกลาง X:</label>
+                  <input type="text" id="editXCenter" class="form-control form-control-sm" readonly />
+                </div>
+                <div class="col-6">
+                  <label class="form-label small text-muted">จุดกึ่งกลาง Y:</label>
+                  <input type="text" id="editYCenter" class="form-control form-control-sm" readonly />
+                </div>
+                <div class="col-6">
+                  <label class="form-label small text-muted">ความกว้าง:</label>
+                  <input type="text" id="editWidth" class="form-control form-control-sm" readonly />
+                </div>
+                <div class="col-6">
+                  <label class="form-label small text-muted">ความสูง:</label>
+                  <input type="text" id="editHeight" class="form-control form-control-sm" readonly />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+            <button type="button" class="btn btn-primary" onclick="saveEditAnnotation()">
+              <i class="fas fa-save"></i> บันทึก
+            </button>
           </div>
         </div>
       </div>
