@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   setupEventListeners();
   loadClasses();
+  refreshNavStats();
 });
 
 function setupEventListeners() {
@@ -29,6 +30,33 @@ function setupEventListeners() {
   canvas.addEventListener("mousemove", onMouseMove);
   canvas.addEventListener("mouseup", onMouseUp);
   canvas.addEventListener("click", onCanvasClick);
+
+  // Track mouse coordinates on canvas
+  canvas.addEventListener("mousemove", function (e) {
+    const rect = canvas.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / canvas.width * 100).toFixed(1);
+    const y = ((e.clientY - rect.top) / canvas.height * 100).toFixed(1);
+    const el = document.getElementById("mouseCoords");
+    if (el) el.textContent = `ตำแหน่ง: ${x}%, ${y}%`;
+  });
+
+  // Confidence slider (main panel)
+  const confSlider = document.getElementById("confidenceSlider");
+  if (confSlider) {
+    confSlider.addEventListener("input", function () {
+      const label = document.getElementById("confidenceValue");
+      if (label) label.textContent = parseFloat(this.value).toFixed(2);
+    });
+  }
+
+  // Confidence slider (edit modal)
+  const editConfSlider = document.getElementById("editConfidenceSlider");
+  if (editConfSlider) {
+    editConfSlider.addEventListener("input", function () {
+      const label = document.getElementById("editConfidenceValue");
+      if (label) label.textContent = parseFloat(this.value).toFixed(2);
+    });
+  }
 
   // Mode change events
   document.querySelectorAll('input[name="mode"]').forEach((radio) => {
@@ -44,6 +72,9 @@ function setupEventListeners() {
     } else if (e.key === "Escape") {
       selectedAnnotation = -1;
       redrawCanvas();
+    } else if (e.key === "s" && e.ctrlKey) {
+      e.preventDefault();
+      saveAnnotations();
     }
   });
 }
@@ -51,6 +82,15 @@ function setupEventListeners() {
 function updateCanvasCursor() {
   const mode = document.querySelector('input[name="mode"]:checked').value;
   canvas.className = mode === "select" ? "select-mode" : "";
+}
+
+function filterImageList(query) {
+  const items = document.querySelectorAll("#imageList .image-item");
+  const q = query.toLowerCase();
+  items.forEach((item) => {
+    const name = (item.dataset.filename || "").toLowerCase();
+    item.style.display = name.includes(q) ? "" : "none";
+  });
 }
 
 function loadImage(imageName) {
@@ -73,6 +113,10 @@ function loadImage(imageName) {
       imageHeight = data.height;
       annotations = data.annotations || [];
       classes = data.classes || [];
+
+      // Show image dimensions
+      const sizeEl = document.getElementById("imageSizeInfo");
+      if (sizeEl) sizeEl.textContent = `ขนาดรูป: ${data.width} × ${data.height} px`;
 
       updateClassSelect();
       loadImageToCanvas(imageName);
@@ -144,12 +188,13 @@ function drawAnnotation(annotation, isSelected = false) {
   ctx.fillRect(x, y, width, height);
   ctx.strokeRect(x, y, width, height);
 
-  // Draw class label
+  // Draw class label with confidence
   if (annotation.class_id < classes.length) {
     const className = classes[annotation.class_id];
+    const conf = annotation.confidence !== undefined ? ` (${parseFloat(annotation.confidence).toFixed(2)})` : "";
     ctx.fillStyle = isSelected ? "#ff0000" : "#00ff00";
     ctx.font = "14px Arial";
-    ctx.fillText(className, x, y - 5);
+    ctx.fillText(`${className}${conf}`, x, y - 5);
   }
 }
 
@@ -205,12 +250,18 @@ function onMouseUp(e) {
 
   if (width > 0.01 && height > 0.01) {
     const classId = parseInt(document.getElementById("classSelect").value);
+    const confidence = parseFloat(document.getElementById("confidenceSlider").value);
+    const notes = document.getElementById("annotationNote").value.trim();
+
     const annotation = {
       class_id: classId,
       x_center: (startX + endX) / 2,
       y_center: (startY + endY) / 2,
       width: width,
       height: height,
+      confidence: confidence,
+      notes: notes,
+      created_at: new Date().toISOString(),
     };
 
     annotations.push(annotation);
@@ -261,6 +312,10 @@ function updateAnnotationList() {
   const listContainer = document.getElementById("annotationList");
   listContainer.innerHTML = "";
 
+  // Update badge count
+  const badge = document.getElementById("annotationCountBadge");
+  if (badge) badge.textContent = annotations.length;
+
   if (annotations.length === 0) {
     listContainer.innerHTML =
       '<p class="text-muted small">ยังไม่มี annotation</p>';
@@ -270,39 +325,92 @@ function updateAnnotationList() {
   annotations.forEach((ann, index) => {
     const className =
       ann.class_id < classes.length ? classes[ann.class_id] : "Unknown";
+    const conf = ann.confidence !== undefined ? parseFloat(ann.confidence).toFixed(2) : "1.00";
+    const notes = ann.notes ? ann.notes : "";
     const item = document.createElement("div");
     item.className = `annotation-item ${
       index === selectedAnnotation ? "selected" : ""
     }`;
     item.innerHTML = `
-            <strong>${className}</strong><br>
-            <small>Center: (${(ann.x_center * 100).toFixed(1)}%, ${(
-      ann.y_center * 100
-    ).toFixed(1)}%)</small><br>
-            <small>Size: ${(ann.width * 100).toFixed(1)}% × ${(
-      ann.height * 100
-    ).toFixed(1)}%</small>
-        `;
-    item.onclick = () => {
-      selectedAnnotation = index;
-      updateAnnotationList();
-      redrawCanvas();
+      <div class="d-flex justify-content-between align-items-start">
+        <strong>${className}</strong>
+        <span class="badge bg-secondary">${conf}</span>
+      </div>
+      <small class="text-muted d-block">
+        ศูนย์: (${(ann.x_center * 100).toFixed(1)}%, ${(ann.y_center * 100).toFixed(1)}%)
+        &nbsp;|&nbsp;
+        ขนาด: ${(ann.width * 100).toFixed(1)}% × ${(ann.height * 100).toFixed(1)}%
+      </small>
+      ${notes ? `<small class="text-info d-block"><i class="fas fa-sticky-note"></i> ${notes}</small>` : ""}
+      <div class="mt-1">
+        <button class="btn btn-xs btn-outline-primary py-0 px-1" style="font-size:0.75rem;" onclick="openEditModal(${index})">
+          <i class="fas fa-edit"></i> แก้ไข
+        </button>
+      </div>
+    `;
+    item.onclick = (e) => {
+      if (!e.target.closest("button")) {
+        selectedAnnotation = index;
+        updateAnnotationList();
+        redrawCanvas();
+      }
     };
     listContainer.appendChild(item);
   });
 }
 
 function updateClassSelect() {
-  const select = document.getElementById("classSelect");
-  select.innerHTML = "";
-
-  classes.forEach((className, index) => {
-    const option = document.createElement("option");
-    option.value = index;
-    option.textContent = className;
-    select.appendChild(option);
+  const selects = [
+    document.getElementById("classSelect"),
+    document.getElementById("editClassSelect"),
+  ];
+  selects.forEach((select) => {
+    if (!select) return;
+    select.innerHTML = "";
+    classes.forEach((className, index) => {
+      const option = document.createElement("option");
+      option.value = index;
+      option.textContent = className;
+      select.appendChild(option);
+    });
   });
 }
+
+// ---- Edit Annotation Modal ----
+
+function openEditModal(index) {
+  const ann = annotations[index];
+  if (!ann) return;
+
+  document.getElementById("editAnnotationIndex").value = index;
+  document.getElementById("editClassSelect").value = ann.class_id;
+  const conf = ann.confidence !== undefined ? ann.confidence : 1.0;
+  document.getElementById("editConfidenceSlider").value = conf;
+  document.getElementById("editConfidenceValue").textContent = parseFloat(conf).toFixed(2);
+  document.getElementById("editAnnotationNote").value = ann.notes || "";
+  document.getElementById("editXCenter").value = ann.x_center.toFixed(6);
+  document.getElementById("editYCenter").value = ann.y_center.toFixed(6);
+  document.getElementById("editWidth").value = ann.width.toFixed(6);
+  document.getElementById("editHeight").value = ann.height.toFixed(6);
+
+  const modal = new bootstrap.Modal(document.getElementById("editAnnotationModal"));
+  modal.show();
+}
+
+function saveEditAnnotation() {
+  const index = parseInt(document.getElementById("editAnnotationIndex").value);
+  if (isNaN(index) || index < 0 || index >= annotations.length) return;
+
+  annotations[index].class_id = parseInt(document.getElementById("editClassSelect").value);
+  annotations[index].confidence = parseFloat(document.getElementById("editConfidenceSlider").value);
+  annotations[index].notes = document.getElementById("editAnnotationNote").value.trim();
+
+  bootstrap.Modal.getInstance(document.getElementById("editAnnotationModal")).hide();
+  updateAnnotationList();
+  redrawCanvas();
+}
+
+// ---- Save / Clear / Delete ----
 
 function saveAnnotations() {
   if (!currentImageName) {
@@ -326,6 +434,7 @@ function saveAnnotations() {
     .then((data) => {
       if (data.success) {
         showAlert("บันทึก annotation เรียบร้อยแล้ว", "success");
+        refreshNavStats();
       } else {
         showAlert("เกิดข้อผิดพลาดในการบันทึก", "danger");
       }
@@ -354,6 +463,8 @@ function deleteSelected() {
   }
 }
 
+// ---- Zoom ----
+
 function zoomIn() {
   scale *= 1.2;
   applyZoom();
@@ -381,7 +492,8 @@ function applyZoom() {
   redrawCanvas();
 }
 
-// Modal functions
+// ---- Modals ----
+
 function showUploadModal() {
   const modal = new bootstrap.Modal(document.getElementById("uploadModal"));
   modal.show();
@@ -392,6 +504,14 @@ function showClassModal() {
   const modal = new bootstrap.Modal(document.getElementById("classModal"));
   modal.show();
 }
+
+function showStatsModal() {
+  refreshStats();
+  const modal = new bootstrap.Modal(document.getElementById("statsModal"));
+  modal.show();
+}
+
+// ---- Upload ----
 
 function uploadFiles() {
   const fileInput = document.getElementById("fileInput");
@@ -431,6 +551,8 @@ function uploadFiles() {
   bootstrap.Modal.getInstance(document.getElementById("uploadModal")).hide();
 }
 
+// ---- Classes ----
+
 function loadClasses() {
   fetch("/get_classes")
     .then((response) => response.json())
@@ -451,11 +573,11 @@ function loadClassList() {
     const item = document.createElement("div");
     item.className = "class-item";
     item.innerHTML = `
-            <span>${className}</span>
-            <button class="btn btn-danger btn-sm btn-delete-class" onclick="deleteClass('${className}')">
-                <i class="fas fa-trash"></i>
-            </button>
-        `;
+      <span>${className}</span>
+      <button class="btn btn-danger btn-sm btn-delete-class" onclick="deleteClass('${className}')">
+        <i class="fas fa-trash"></i>
+      </button>
+    `;
     container.appendChild(item);
   });
 }
@@ -523,11 +645,59 @@ function deleteClass(className) {
     });
 }
 
+// ---- Statistics ----
+
+function refreshNavStats() {
+  fetch("/get_statistics")
+    .then((r) => r.json())
+    .then((data) => {
+      const totalEl = document.getElementById("navTotalImages");
+      const annEl = document.getElementById("navTotalAnnotations");
+      if (totalEl) totalEl.textContent = data.total_images;
+      if (annEl) annEl.textContent = data.total_annotations;
+    })
+    .catch(() => {});
+}
+
+function refreshStats() {
+  fetch("/get_statistics")
+    .then((response) => response.json())
+    .then((data) => {
+      document.getElementById("statTotalImages").textContent = data.total_images;
+      document.getElementById("statAnnotatedImages").textContent = data.annotated_images;
+      document.getElementById("statTotalAnnotations").textContent = data.total_annotations;
+      document.getElementById("statTotalClasses").textContent = data.total_classes;
+
+      // Fill distribution table
+      const tbody = document.getElementById("classDistBody");
+      tbody.innerHTML = "";
+      const total = data.total_annotations;
+      for (const [cls, count] of Object.entries(data.class_distribution)) {
+        const pct = total > 0 ? ((count / total) * 100).toFixed(1) : "0.0";
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${cls}</td>
+          <td class="text-end">${count}</td>
+          <td>
+            <div class="progress" style="height:14px;">
+              <div class="progress-bar" style="width:${pct}%">${pct}%</div>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching statistics:", error);
+      showAlert("เกิดข้อผิดพลาดในการโหลดสถิติ", "danger");
+    });
+}
+
 function exportDataset() {
   fetch("/export_dataset")
     .then((response) => response.json())
     .then((data) => {
-      let message = `สถิติข้อมูล:\n`;
+      let message = `📊 สถิติชุดข้อมูล:\n`;
       message += `รูปภาพทั้งหมด: ${data.total_images}\n`;
       message += `รูปที่ annotate แล้ว: ${data.annotated_images}\n`;
       message += `จำนวน annotation: ${data.total_annotations}\n`;
@@ -537,7 +707,7 @@ function exportDataset() {
       for (const [className, count] of Object.entries(
         data.class_distribution
       )) {
-        message += `${className}: ${count}\n`;
+        message += `  ${className}: ${count}\n`;
       }
 
       alert(message);
@@ -548,13 +718,15 @@ function exportDataset() {
     });
 }
 
+// ---- Alert helper ----
+
 function showAlert(message, type = "info") {
   const alertContainer = document.createElement("div");
   alertContainer.className = `alert alert-${type} alert-custom alert-dismissible fade show`;
   alertContainer.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
 
   document.body.appendChild(alertContainer);
 

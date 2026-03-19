@@ -1,6 +1,7 @@
 import os
 import json
 import shutil
+from datetime import datetime
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 from PIL import Image
@@ -41,7 +42,7 @@ def load_classes():
     classes_file = '../dataset/classes.txt'
     if os.path.exists(classes_file):
         with open(classes_file, 'r', encoding='utf-8') as f:
-            return [line.strip() for line in f.readlines()]
+            return [line.strip() for line in f.readlines() if line.strip()]
     else:
         # Create default classes file
         with open(classes_file, 'w', encoding='utf-8') as f:
@@ -56,32 +57,78 @@ def save_classes(classes):
         for cls in classes:
             f.write(f"{cls}\n")
 
+def _meta_path(image_name):
+    """Return path of JSON metadata sidecar for the given image"""
+    base = image_name.rsplit('.', 1)[0]
+    return os.path.join(ANNOTATION_FOLDER, base + '_meta.json')
+
 def load_annotation(image_name):
-    """Load existing annotation for an image"""
+    """Load existing annotation for an image.
+
+    Returns a list of annotation dicts that include YOLO fields
+    (class_id, x_center, y_center, width, height) plus any extra
+    metadata (confidence, notes, created_at) stored in the JSON sidecar.
+    """
     annotation_file = os.path.join(ANNOTATION_FOLDER, image_name.rsplit('.', 1)[0] + '.txt')
+    meta_file = _meta_path(image_name)
+
+    # Load optional metadata sidecar
+    meta_list = []
+    if os.path.exists(meta_file):
+        try:
+            with open(meta_file, 'r', encoding='utf-8') as f:
+                meta_list = json.load(f)
+        except (json.JSONDecodeError, ValueError):
+            meta_list = []
+
+    annotations = []
     if os.path.exists(annotation_file):
-        annotations = []
-        with open(annotation_file, 'r') as f:
-            for line in f:
+        with open(annotation_file, 'r', encoding='utf-8') as f:
+            for idx, line in enumerate(f):
                 parts = line.strip().split()
-                if len(parts) == 5:
-                    class_id, x_center, y_center, width, height = map(float, parts)
-                    annotations.append({
+                if len(parts) >= 5:
+                    class_id, x_center, y_center, width, height = map(float, parts[:5])
+                    ann = {
                         'class_id': int(class_id),
                         'x_center': x_center,
                         'y_center': y_center,
                         'width': width,
-                        'height': height
-                    })
-        return annotations
-    return []
+                        'height': height,
+                        'confidence': 1.0,
+                        'notes': '',
+                        'created_at': '',
+                    }
+                    # Merge with metadata if available
+                    if idx < len(meta_list):
+                        ann['confidence'] = meta_list[idx].get('confidence', 1.0)
+                        ann['notes'] = meta_list[idx].get('notes', '')
+                        ann['created_at'] = meta_list[idx].get('created_at', '')
+                    annotations.append(ann)
+    return annotations
 
 def save_annotation(image_name, annotations):
-    """Save annotations in YOLO format"""
-    annotation_file = os.path.join(ANNOTATION_FOLDER, image_name.rsplit('.', 1)[0] + '.txt')
-    with open(annotation_file, 'w') as f:
+    """Save annotations: YOLO format .txt + JSON sidecar for extra metadata."""
+    base = image_name.rsplit('.', 1)[0]
+    annotation_file = os.path.join(ANNOTATION_FOLDER, base + '.txt')
+    meta_file = _meta_path(image_name)
+
+    now = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    meta_list = []
+
+    with open(annotation_file, 'w', encoding='utf-8') as f:
         for ann in annotations:
-            f.write(f"{ann['class_id']} {ann['x_center']} {ann['y_center']} {ann['width']} {ann['height']}\n")
+            f.write(
+                f"{ann['class_id']} {ann['x_center']} "
+                f"{ann['y_center']} {ann['width']} {ann['height']}\n"
+            )
+            meta_list.append({
+                'confidence': float(ann.get('confidence', 1.0)),
+                'notes': str(ann.get('notes', '')),
+                'created_at': ann.get('created_at') or now,
+            })
+
+    with open(meta_file, 'w', encoding='utf-8') as f:
+        json.dump(meta_list, f, ensure_ascii=False, indent=2)
 
 @app.route('/')
 def index():
@@ -184,21 +231,21 @@ def delete_class():
     else:
         return jsonify({'error': 'Class not found'}), 400
 
-@app.route('/export_dataset')
-def export_dataset():
-    """Export dataset statistics"""
+@app.route('/get_statistics')
+def get_statistics():
+    """Return aggregated statistics for the whole dataset"""
     images = [f for f in os.listdir(UPLOAD_FOLDER) if allowed_file(f)]
     classes = load_classes()
-    
+
     stats = {
         'total_images': len(images),
         'total_classes': len(classes),
         'classes': classes,
         'annotated_images': 0,
         'total_annotations': 0,
-        'class_distribution': {cls: 0 for cls in classes}
+        'class_distribution': {cls: 0 for cls in classes},
     }
-    
+
     for image in images:
         annotations = load_annotation(image)
         if annotations:
@@ -208,8 +255,13 @@ def export_dataset():
                 if 0 <= ann['class_id'] < len(classes):
                     class_name = classes[ann['class_id']]
                     stats['class_distribution'][class_name] += 1
-    
+
     return jsonify(stats)
+
+@app.route('/export_dataset')
+def export_dataset():
+    """Export dataset statistics"""
+    return get_statistics()
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
